@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>Sammlungssuche</title>
 <style>
@@ -36,11 +36,14 @@ body{
   font-family:'Archivo',system-ui,sans-serif;
   line-height:1.45;-webkit-font-smoothing:antialiased;
 }
-.wrap{max-width:880px;margin:0 auto;padding:0 18px 80px}
+.wrap{max-width:880px;margin:0 auto;
+  padding:0 calc(18px + env(safe-area-inset-right)) calc(80px + env(safe-area-inset-bottom)) calc(18px + env(safe-area-inset-left))}
 
 header{
-  position:sticky;top:0;z-index:50;margin:0 -18px;padding:18px 18px 14px;
-  background:rgba(246,245,241,.92);backdrop-filter:blur(8px);
+  position:sticky;top:0;z-index:50;
+  margin:0 calc(-18px - env(safe-area-inset-right)) 0 calc(-18px - env(safe-area-inset-left));
+  padding:calc(18px + env(safe-area-inset-top)) calc(18px + env(safe-area-inset-right)) 14px calc(18px + env(safe-area-inset-left));
+  background:rgba(246,245,241,.92);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   border-bottom:1px solid var(--line);
 }
 .title-row{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin-bottom:14px}
@@ -74,22 +77,42 @@ h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(24px,5.5vw,34px)
 .scope[data-s="phys"].active{background:var(--phys);border-color:var(--phys);color:#fff}
 .scope[data-s="chem"].active{background:var(--chem);border-color:var(--chem);color:#fff}
 
-.chips{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}
-.chip{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;
-  background:var(--panel);color:var(--ink-dim);border:1.5px solid var(--line-strong);
-  border-radius:999px;padding:6px 12px;transition:all .14s;display:flex;align-items:center;gap:6px}
-.chip:hover{border-color:var(--ink-dim);color:var(--ink)}
-.chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
-.chip .n{font-size:11px;opacity:.65}
+/* Steuerzeile: Themen-Dropdown + Sortierung */
+.controls{display:flex;gap:8px;margin-top:12px;align-items:stretch}
 
-.sortbar{display:flex;align-items:center;gap:10px;margin-top:12px}
-.sortlbl{font-size:12px;font-weight:600;color:var(--ink-dim);text-transform:uppercase;letter-spacing:.06em}
-.sorts{display:flex;gap:0;background:var(--panel);border:1.5px solid var(--line-strong);border-radius:9px;overflow:hidden}
-.sortbtn{font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;
-  background:transparent;color:var(--ink-dim);border:none;padding:7px 16px;transition:all .14s}
-.sortbtn+.sortbtn{border-left:1.5px solid var(--line-strong)}
-.sortbtn:hover{color:var(--ink)}
-.sortbtn.active{background:var(--ink);color:#fff}
+.dropdown{position:relative;flex:1;min-width:0}
+.dd-toggle{width:100%;display:flex;align-items:center;gap:8px;font-family:inherit;
+  font-size:13.5px;font-weight:600;cursor:pointer;background:var(--panel);color:var(--ink);
+  border:1.5px solid var(--line-strong);border-radius:10px;padding:10px 12px;text-align:left;
+  transition:border-color .15s,box-shadow .15s}
+.dd-toggle .dd-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-toggle .dd-n{font-size:11px;font-weight:700;color:#fff;background:var(--ink);
+  padding:2px 8px;border-radius:999px;flex-shrink:0}
+.dd-toggle svg{width:16px;height:16px;stroke:var(--ink-dim);flex-shrink:0}
+.dd-toggle .dd-chev{transition:transform .18s}
+.dropdown.open .dd-toggle{border-color:var(--phys);box-shadow:0 0 0 3px rgba(29,58,95,.12)}
+.dropdown.open .dd-toggle .dd-chev{transform:rotate(180deg)}
+
+.dd-menu{position:absolute;top:calc(100% + 6px);left:0;right:0;z-index:60;
+  background:var(--panel);border:1.5px solid var(--line-strong);border-radius:12px;
+  box-shadow:0 12px 34px rgba(0,0,0,.16);padding:6px;max-height:min(60vh,360px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;display:none}
+.dropdown.open .dd-menu{display:block;animation:rise .16s ease backwards}
+.dd-item{width:100%;display:flex;align-items:center;gap:10px;font-family:inherit;
+  font-size:14.5px;font-weight:600;cursor:pointer;background:transparent;color:var(--ink);
+  border:none;border-radius:8px;padding:11px 12px;text-align:left}
+.dd-item:hover{background:var(--panel-soft)}
+.dd-item.active{background:var(--panel-soft)}
+.dd-check{width:19px;height:19px;flex-shrink:0;border:1.8px solid var(--line-strong);
+  border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;transition:all .12s}
+.dd-item.active .dd-check{background:var(--phys);border-color:var(--phys)}
+.dd-check svg{width:13px;height:13px;opacity:0;transition:opacity .12s}
+.dd-item.active .dd-check svg{opacity:1}
+.dd-item .dd-it-label{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-item .dd-n{font-size:12px;color:var(--ink-dim);opacity:.7;flex-shrink:0}
+.dd-divider{height:1px;background:var(--line);margin:5px 8px}
+
+.sort-dd{flex:0 0 auto;min-width:138px}
 
 .results{margin-top:22px;display:flex;flex-direction:column;gap:9px}
 
@@ -131,6 +154,37 @@ h1{font-family:'Fraunces',serif;font-weight:700;font-size:clamp(24px,5.5vw,34px)
 .legend i{width:11px;height:11px;border-radius:3px;display:inline-block}
 .legend .p{background:var(--phys)}.legend .c{background:var(--chem)}.legend .nu{background:var(--neutral)}
 footer{margin-top:14px;text-align:center;font-size:12px;color:var(--ink-dim);opacity:.7}
+
+/* Tablet / iPad: etwas mehr Luft */
+@media (min-width:700px){
+  .card{padding:15px 18px}
+  .loc{min-width:80px}
+}
+
+/* Smartphone */
+@media (max-width:560px){
+  .wrap{padding:0 calc(13px + env(safe-area-inset-right)) calc(56px + env(safe-area-inset-bottom)) calc(13px + env(safe-area-inset-left))}
+  header{margin:0 calc(-13px - env(safe-area-inset-right)) 0 calc(-13px - env(safe-area-inset-left));
+    padding:calc(14px + env(safe-area-inset-top)) calc(13px + env(safe-area-inset-right)) 12px calc(13px + env(safe-area-inset-left))}
+  .title-row{gap:6px 10px;margin-bottom:12px}
+  .scopes,.controls{gap:6px}
+  .results{margin-top:16px;gap:8px}
+  .card{padding:12px 13px;gap:11px}
+  .loc{min-width:62px;padding:7px 5px}
+  .loc .code{font-size:16px}
+  .info .name{font-size:15.5px}
+}
+
+/* sehr schmal: Steuerzeile umbrechen */
+@media (max-width:380px){
+  .controls{flex-wrap:wrap}
+  .sort-dd{flex:1 1 100%;min-width:0}
+}
+
+/* Touch-Geräte: kein Hover-Flackern, größere Tippziele */
+@media (hover:none){
+  .dd-item{padding:14px 12px}
+}
 </style>
 </head>
 <body>
@@ -152,14 +206,24 @@ footer{margin-top:14px;text-align:center;font-size:12px;color:var(--ink-dim);opa
       <button class="scope" data-s="phys">Physik</button>
       <button class="scope" data-s="chem">Chemie</button>
     </div>
-    <div class="sortbar">
-      <span class="sortlbl">Sortierung</span>
-      <div class="sorts" id="sorts">
-        <button class="sortbtn active" data-sort="loc">Standort</button>
-        <button class="sortbtn" data-sort="az">A&ndash;Z</button>
+    <div class="controls">
+      <div class="dropdown" id="topicDD">
+        <button class="dd-toggle" id="topicToggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <span class="dd-label" id="topicLabel">Alle Themen</span>
+          <span class="dd-n" id="topicCount"></span>
+          <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="dd-menu" id="topicMenu" role="listbox"></div>
+      </div>
+      <div class="dropdown sort-dd" id="sortDD">
+        <button class="dd-toggle" id="sortToggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <svg class="dd-ic" viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 5h10M11 9h7M11 13h4M3 17l3 3 3-3M6 4v16"/></svg>
+          <span class="dd-label" id="sortLabel">Standort</span>
+          <svg class="dd-chev" viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+        <div class="dd-menu" id="sortMenu" role="listbox"></div>
       </div>
     </div>
-    <div class="chips" id="chips"></div>
   </header>
 
   <div class="results" id="results"></div>
@@ -204,38 +268,95 @@ function lev(a,b){const m=a.length,n=b.length;if(Math.abs(m-n)>2)return 99;
   for(let j=0;j<=n;j++)dp[0][j]=j;
   for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)dp[i][j]=Math.min(dp[i-1][j]+1,dp[i][j-1]+1,dp[i-1][j-1]+(a[i-1]===b[j-1]?0:1));
   return dp[m][n];}
-DATA.forEach(d=>{d._name=norm(d.Inhalt);d._all=norm(d.Inhalt)+' '+norm(d.Themenfeld);
+DATA.forEach(d=>{d._name=norm(d.Inhalt);
+  const loc='schrank '+d.Schrank+' fach '+d.Fach+' kiste '+d.Kiste;
+  d._all=norm(d.Inhalt)+' '+norm(d.Themenfeld)+' '+norm(loc);
   d._tokens=d._all.split(' ').filter(Boolean);});
 
-let activeTopic=null, activeScope='all', activeSort='loc';
+function numOf(v){const m=(''+v).match(/\d+/);return m?parseInt(m[0],10):0;}
+const SORT_KEYS={
+  loc:d=>[numOf(d.Schrank),numOf(d.Fach),numOf(d.Kiste),''+d.Kiste],
+  schrank:d=>[numOf(d.Schrank),numOf(d.Fach),numOf(d.Kiste),''+d.Kiste],
+  fach:d=>[numOf(d.Fach),numOf(d.Schrank),numOf(d.Kiste),''+d.Kiste],
+  kiste:d=>[numOf(d.Kiste),''+d.Kiste,numOf(d.Schrank),numOf(d.Fach)]
+};
+function cmpArr(a,b){for(let i=0;i<a.length;i++){const x=a[i],y=b[i];
+  if(typeof x==='number'&&typeof y==='number'){if(x!==y)return x-y;}
+  else{const r=(''+x).localeCompare(''+y,'de');if(r)return r;}}return 0;}
+const SORTS=[['loc','Standort'],['az','Name (A–Z)'],['schrank','Schrank'],['fach','Fach'],['kiste','Kiste']];
+
+let activeTopics=new Set(), activeScope='all', activeSort='loc';
 const qEl=document.getElementById('q'),resultsEl=document.getElementById('results'),
-  chipsEl=document.getElementById('chips'),clearBtn=document.getElementById('clearBtn'),
-  countPill=document.getElementById('countPill');
+  clearBtn=document.getElementById('clearBtn'),countPill=document.getElementById('countPill'),
+  topicDD=document.getElementById('topicDD'),topicToggle=document.getElementById('topicToggle'),
+  topicLabel=document.getElementById('topicLabel'),topicCountEl=document.getElementById('topicCount'),
+  topicMenu=document.getElementById('topicMenu'),
+  sortDD=document.getElementById('sortDD'),sortToggle=document.getElementById('sortToggle'),
+  sortLabel=document.getElementById('sortLabel'),sortMenu=document.getElementById('sortMenu');
 
 function scopeMatch(d){return activeScope==='all'||d._area===activeScope
   ||(activeScope==='phys'&&d._area==='neutral'&&false);}
 // neutral nur unter "Alle" zeigen
 function inScope(d){if(activeScope==='all')return true;return d._area===activeScope;}
 
-function buildChips(){
-  chipsEl.innerHTML='';
+const CHECK_SVG='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 5 5 9-11"/></svg>';
+function buildTopicMenu(){
+  topicMenu.innerHTML='';
   const pool=DATA.filter(inScope);
   const cnt={};pool.forEach(d=>{const seen=new Set();
     topicsOf(d.Themenfeld).forEach(t=>{if(!seen.has(t)){seen.add(t);cnt[t]=(cnt[t]||0)+1;}});});
   const list=Object.keys(cnt).sort((a,b)=>cnt[b]-cnt[a]||a.localeCompare(b,'de'));
-  const allChip=document.createElement('button');
-  allChip.className='chip'+(activeTopic===null?' active':'');
-  allChip.innerHTML='Alle Themen <span class="n">'+pool.length+'</span>';
-  allChip.onclick=()=>{activeTopic=null;render();buildChips();};
-  chipsEl.appendChild(allChip);
-  list.forEach(t=>{const c=document.createElement('button');
-    c.className='chip'+(activeTopic===t?' active':'');
-    c.innerHTML=t+' <span class="n">'+cnt[t]+'</span>';
-    c.onclick=()=>{activeTopic=(activeTopic===t?null:t);render();buildChips();};
-    chipsEl.appendChild(c);});
+  const mk=(label,topic,count,active)=>{
+    const b=document.createElement('button');
+    b.type='button';b.className='dd-item'+(active?' active':'');
+    b.setAttribute('role','option');b.setAttribute('aria-selected',active?'true':'false');
+    b.innerHTML='<span class="dd-check">'+CHECK_SVG+'</span>'
+      +'<span class="dd-it-label">'+escapeHtml(label)+'</span><span class="dd-n">'+count+'</span>';
+    b.onclick=e=>{e.stopPropagation();
+      if(topic===null){activeTopics.clear();}
+      else if(activeTopics.has(topic)){activeTopics.delete(topic);}
+      else{activeTopics.add(topic);}
+      render();buildTopicMenu();};
+    topicMenu.appendChild(b);
+  };
+  mk('Alle Themen',null,pool.length,activeTopics.size===0);
+  const div=document.createElement('div');div.className='dd-divider';topicMenu.appendChild(div);
+  list.forEach(t=>mk(t,t,cnt[t],activeTopics.has(t)));
+  const matched=pool.filter(matchesTopic).length;
+  if(activeTopics.size===0){topicLabel.textContent='Alle Themen';}
+  else if(activeTopics.size===1){topicLabel.textContent=[...activeTopics][0];}
+  else{topicLabel.textContent=activeTopics.size+' Themen';}
+  topicCountEl.textContent=matched;
 }
 
-function matchesTopic(d){if(activeTopic===null)return true;return topicsOf(d.Themenfeld).includes(activeTopic);}
+function setOpen(dd,tog,open){dd.classList.toggle('open',open);tog.setAttribute('aria-expanded',open?'true':'false');}
+function closeDD(){setOpen(topicDD,topicToggle,false);}
+function closeSortDD(){setOpen(sortDD,sortToggle,false);}
+topicToggle.addEventListener('click',e=>{e.stopPropagation();closeSortDD();
+  setOpen(topicDD,topicToggle,!topicDD.classList.contains('open'));});
+sortToggle.addEventListener('click',e=>{e.stopPropagation();closeDD();
+  setOpen(sortDD,sortToggle,!sortDD.classList.contains('open'));});
+document.addEventListener('click',e=>{
+  if(!topicDD.contains(e.target))closeDD();
+  if(!sortDD.contains(e.target))closeSortDD();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDD();closeSortDD();}});
+
+function buildSortMenu(){
+  sortMenu.innerHTML='';
+  SORTS.forEach(([key,label])=>{
+    const active=activeSort===key;
+    const b=document.createElement('button');b.type='button';
+    b.className='dd-item'+(active?' active':'');
+    b.setAttribute('role','option');b.setAttribute('aria-selected',active?'true':'false');
+    b.innerHTML='<span class="dd-check">'+CHECK_SVG+'</span><span class="dd-it-label">'+label+'</span>';
+    b.onclick=e=>{e.stopPropagation();activeSort=key;closeSortDD();render();buildSortMenu();};
+    sortMenu.appendChild(b);
+  });
+  const cur=SORTS.find(s=>s[0]===activeSort);if(cur)sortLabel.textContent=cur[1];
+}
+
+function matchesTopic(d){if(activeTopics.size===0)return true;
+  return topicsOf(d.Themenfeld).some(t=>activeTopics.has(t));}
 
 function score(d,terms){if(!terms.length)return 0;let total=0;
   for(const term of terms){let best=99;
@@ -262,9 +383,8 @@ function render(){
     .sort((a,b)=>a.s-b.s).map(x=>x.d);}
   else if(activeSort==='az'){
     rows=[...rows].sort((a,b)=>a.Inhalt.localeCompare(b.Inhalt,'de',{sensitivity:'base'}));}
-  else{rows=[...rows].sort((a,b)=>{
-    const k=d=>(d.Schrank+'').padStart(3,'0')+(d.Fach+'').padStart(3,'0')+(d.Kiste+'').padStart(4,'0');
-    return k(a).localeCompare(k(b));});}
+  else{const kf=SORT_KEYS[activeSort]||SORT_KEYS.loc;
+    rows=[...rows].sort((a,b)=>cmpArr(kf(a),kf(b)));}
   countPill.textContent=rows.length+' Treffer';
   if(!rows.length){resultsEl.innerHTML='<div class="empty"><div class="big">&#8709;</div><p>Nichts gefunden.</p><p class="hint">Anderen Begriff probieren, Themenfeld oder Bereich zur&uuml;cksetzen.</p></div>';return;}
   let html='';
@@ -277,23 +397,18 @@ function render(){
       +'<div class="tags">'+tags+'</div>'
       +'<div class="loc-detail">Schrank '+escapeHtml(d.Schrank)+' &middot; Fach '+escapeHtml(d.Fach)+' &middot; Kiste '+escapeHtml(d.Kiste)+'</div></div></div>';});
   resultsEl.innerHTML=html;
-  resultsEl.querySelectorAll('.tag').forEach(el=>{el.onclick=()=>{activeTopic=el.dataset.topic;qEl.value='';render();buildChips();window.scrollTo({top:0,behavior:'smooth'});};});
+  resultsEl.querySelectorAll('.tag').forEach(el=>{el.onclick=()=>{activeTopics=new Set([el.dataset.topic]);qEl.value='';render();buildTopicMenu();window.scrollTo({top:0,behavior:'smooth'});};});
 }
 
 document.getElementById('scopes').addEventListener('click',e=>{
   const b=e.target.closest('.scope');if(!b)return;
-  activeScope=b.dataset.s;activeTopic=null;
+  activeScope=b.dataset.s;activeTopics.clear();
   document.querySelectorAll('.scope').forEach(s=>s.classList.toggle('active',s===b));
-  render();buildChips();});
-document.getElementById('sorts').addEventListener('click',e=>{
-  const b=e.target.closest('.sortbtn');if(!b)return;
-  activeSort=b.dataset.sort;
-  document.querySelectorAll('.sortbtn').forEach(s=>s.classList.toggle('active',s===b));
-  render();});
+  render();buildTopicMenu();});
 qEl.addEventListener('input',render);
 clearBtn.addEventListener('click',()=>{qEl.value='';qEl.focus();render();});
 
-buildChips();render();
+buildTopicMenu();buildSortMenu();render();
 </script>
 </body>
 </html>
